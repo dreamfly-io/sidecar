@@ -8,8 +8,9 @@ import (
 
 	_ "github.com/dreamfly-io/sidecar/pkg/proxy/network/listener"
 	_ "github.com/dreamfly-io/sidecar/pkg/proxy/network/connection"
-
+	"github.com/dreamfly-io/sidecar/pkg/server/starter"
 	"github.com/dreamfly-io/sidecar/pkg/util/log"
+	"github.com/dreamfly-io/sidecar/pkg/server/config"
 )
 
 func main() {
@@ -54,9 +55,11 @@ var (
 
 			log.StartLogger.Debug(configPath)
 
-			//conf := config.Load(configPath)
-			//sidecar.Start(conf, serviceCluster, serviceNode)
+			conf := config.Load(configPath)
+			starter.Start(conf)
 			return nil
 		},
 	}
 )
+
+

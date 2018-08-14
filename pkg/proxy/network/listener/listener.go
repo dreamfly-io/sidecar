@@ -6,6 +6,7 @@ import (
 	"github.com/dreamfly-io/sidecar/pkg/util/log"
 	"runtime/debug"
 	"time"
+	"github.com/dreamfly-io/sidecar/pkg/server/config"
 )
 
 // Listener is a wrapper of tcp listener
@@ -26,17 +27,18 @@ type Listener interface {
 // implement listener.Listener
 type listener struct {
 	name          string
-	localAddress  net.Addr
+	address       net.Addr
+	addressString string
 	rawListener   *net.TCPListener
 	eventListener EventListener
 	logger        log.Logger
 }
 
-func NewListener(config *ListenerConfig, logger log.Logger) Listener {
+func NewListener(config *config.ListenerConfig, logger log.Logger) Listener {
 	l := &listener{
-		name:         config.Name,
-		localAddress: config.LocalAddrress,
-		logger:       logger,
+		name:          config.Name,
+		addressString: config.Address,
+		logger:        logger,
 	}
 
 	return l
@@ -45,9 +47,10 @@ func NewListener(config *ListenerConfig, logger log.Logger) Listener {
 func (l *listener) Start(context context.Context) {
 	if l.rawListener == nil {
 		if err := l.listen(context); err != nil {
-			log.StartLogger.Fatal(l.name, " listen failed, ", err)
+			log.StartLogger.Fatal("Fail to start listener: address=%s, error=%-v", l.addressString, err)
 			return
 		}
+		log.StartLogger.Info("Success to start listener: address=%s", l.addressString)
 	}
 
 	for {
@@ -61,7 +64,7 @@ func (l *listener) Start(context context.Context) {
 				if !(ope.Timeout() && ope.Temporary()) {
 					// accept error raised by sockets closing
 					if ope.Op == "accept" {
-						l.logger.Info("listener %s %s closed", l.name, l.localAddress)
+						l.logger.Info("listener %s %s closed", l.name, l.address)
 					} else {
 						l.logger.Error("listener %s occurs non-recoverable error, stop listening and accepting:%s", l.name, err.Error())
 					}
@@ -75,7 +78,13 @@ func (l *listener) Start(context context.Context) {
 }
 
 func (l *listener) listen(context context.Context) error {
-	rawListener, err := net.ListenTCP("tcp", l.localAddress.(*net.TCPAddr))
+	addr, err := net.ResolveTCPAddr("tcp", l.addressString)
+	if err != nil {
+		return err
+	}
+	l.address = addr
+
+	rawListener, err := net.ListenTCP("tcp", l.address.(*net.TCPAddr))
 	if err != nil {
 		return err
 	}
@@ -123,5 +132,5 @@ func (l *listener) Name() string {
 }
 
 func (l *listener) LocalAddress() net.Addr {
-	return l.localAddress
+	return l.address
 }
