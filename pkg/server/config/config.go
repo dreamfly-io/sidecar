@@ -4,7 +4,7 @@ func Load(path string) *ServerConfig {
 	server := &ServerConfig{
 		Processor: 1,
 		DefaultLogPath:  "",
-		DefaultLogLevel: "INFO",
+		DefaultLogLevel: "TRACE",
 	}
 
 	listeners := make([]*ListenerConfig, 0, 1)
@@ -12,7 +12,7 @@ func Load(path string) *ServerConfig {
 		Name: "HTTP",
 		Address: "localhost:7001",
 		LogPath:  "stdout",
-		LogLevel: "INFO",
+		LogLevel: "TRACE",
 	}
 	listeners = append(listeners, listener)
 	server.Listeners = listeners

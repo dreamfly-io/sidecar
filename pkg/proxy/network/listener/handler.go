@@ -6,20 +6,19 @@ import (
 )
 
 type Handler interface {
-
 	AddListener(listenerConfig *config.ListenerConfig)
 
 	StartListeners()
 }
 
 type handler struct {
-	logger         log.Logger
-	listeners 	[]Listener
+	logger    log.Logger
+	listeners []Listener
 }
 
 func NewHandler(logger log.Logger) Handler {
 	ch := &handler{
-		logger:         logger,
+		logger:    logger,
 		listeners: make([]Listener, 0),
 	}
 
@@ -27,7 +26,11 @@ func NewHandler(logger log.Logger) Handler {
 }
 
 func (h *handler) AddListener(lc *config.ListenerConfig) {
-	l := NewListener(lc, h.logger)
+	listenerStopChan := make(chan struct{})
+	l := NewListener(lc, listenerStopChan, h.logger)
+	el := NewEventListener(l, listenerStopChan, h.logger)
+	l.SetEventListener(el)
+
 	h.listeners = append(h.listeners, l)
 }
 

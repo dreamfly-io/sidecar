@@ -31,9 +31,9 @@ func NewServer(serverConfig *config.ServerConfig) Server {
 	runtime.GOMAXPROCS(processorNumber)
 
 	s := &server{
-		logger:          log.DefaultLogger,
+		logger:          log.StartLogger,		//TODO: use StartLogger for debug, log.DefaultLogger for production
 		listenerConfigs: sync.Map{},
-		handler: listener.NewHandler(log.DefaultLogger),
+		handler: listener.NewHandler(log.StartLogger),
 	}
 	for _, listenerConfig := range serverConfig.Listeners {
 		s.addListener(listenerConfig)

@@ -27,7 +27,7 @@ func init() {
 	//use console  as start logger
 	l := &logger{
 		Output:  "",
-		Level:   DEBUG,
+		Level:   TRACE,
 		Roller:  DefaultRoller(),
 		fileMux: new(sync.RWMutex),
 	}

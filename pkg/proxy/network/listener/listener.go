@@ -13,7 +13,7 @@ import (
 type Listener interface {
 	Name() string
 
-	LocalAddress() net.Addr
+	Address() net.Addr
 
 	SetEventListener(eventListener EventListener)
 
@@ -31,13 +31,15 @@ type listener struct {
 	addressString string
 	rawListener   *net.TCPListener
 	eventListener EventListener
+	stopChan      chan struct{}
 	logger        log.Logger
 }
 
-func NewListener(config *config.ListenerConfig, logger log.Logger) Listener {
+func NewListener(config *config.ListenerConfig, stopChan chan struct{}, logger log.Logger) Listener {
 	l := &listener{
 		name:          config.Name,
 		addressString: config.Address,
+		stopChan:      stopChan,
 		logger:        logger,
 	}
 
@@ -99,6 +101,7 @@ func (l *listener) accept(lctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	l.logger.Trace("Accepted a connection on listener %s", l.addressString)
 
 	go func() {
 		defer func() {
@@ -131,6 +134,6 @@ func (l *listener) Name() string {
 	return l.name
 }
 
-func (l *listener) LocalAddress() net.Addr {
+func (l *listener) Address() net.Addr {
 	return l.address
 }
